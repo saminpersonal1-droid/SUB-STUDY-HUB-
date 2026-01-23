@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Varsity Bus Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), 
+                        url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=2000');
+            background-size: cover; background-position: center; background-attachment: fixed;
+        }
+        .glass-panel { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px); border: 3px solid #15803d; }
+        .text-outline { text-shadow: 2px 2px 0 #15803d, -1px -1px 0 #15803d; }
+        .admin-only { display: none; }
+        #displayImage { width: 100%; max-height: 450px; object-fit: cover; border-radius: 1.5rem; border: 4px solid #facc15; }
+        .route-btn { transition: all 0.3s ease; cursor: pointer; border-left: 8px solid #15803d; }
+        .route-btn:hover { transform: scale(1.02); background-color: #fef08a; }
+        .nav-link { transition: all 0.2s; }
+        .nav-link:hover { background-color: white; color: #14532d; }
+    </style>
+</head>
+<body class="font-sans text-green-900 pb-10">
+
+    <nav class="bg-green-900 text-yellow-400 p-4 sticky top-0 z-50 shadow-2xl border-b-2 border-yellow-500">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="font-black text-xl tracking-tighter mr-4 border-r border-yellow-500/30 pr-4">VARSITY TRANSIT</div>
+                
+                <a href="home.html" class="nav-link flex items-center gap-2 bg-yellow-400/10 border border-yellow-400 px-4 py-1.5 rounded-full font-bold text-xs uppercase">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    Home
+                </a>
+            </div>
+
+            <button onclick="adminLogin()" class="bg-yellow-400 text-green-900 px-5 py-2 rounded-full font-bold text-xs uppercase hover:bg-white transition shadow-lg">
+                Admin Login
+            </button>
+        </div>
+    </nav>
+
+    <main class="p-4 md:p-10 max-w-6xl mx-auto space-y-10">
+        
+        <header class="text-center">
+            <h1 onclick="secretReset()" class="cursor-default text-5xl md:text-7xl font-black text-yellow-400 uppercase text-outline select-none">BUS INFORMATION</h1>
+        </header>
+
+        <section id="adminPanel" class="admin-only glass-panel rounded-3xl p-8 border-red-600 border-4 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black text-red-700 uppercase italic">🛠️ Admin Settings</h2>
+                <button onclick="logout()" class="bg-gray-800 text-white px-4 py-2 rounded-lg font-bold text-xs uppercase">Logout</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-gray-50 p-4 rounded-2xl shadow-inner">
+                    <h3 class="font-bold mb-3 text-green-800 uppercase text-xs">Update Gallery Photo</h3>
+                    <input type="file" id="imageInput" accept="image/*" class="text-xs w-full">
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-2xl shadow-inner">
+                    <h3 class="font-bold mb-3 text-green-800 uppercase text-xs">Edit Routes</h3>
+                    <div id="routeEditorGrid" class="space-y-1 max-h-48 overflow-y-auto p-1"></div>
+                </div>
+
+                <div class="bg-red-50 p-4 rounded-2xl shadow-inner border border-red-200">
+                    <h3 class="font-bold mb-3 text-red-800 uppercase text-xs">Security</h3>
+                    <input type="text" id="newPassInput" placeholder="New Password" class="w-full p-2 text-sm border rounded mb-2">
+                    <button onclick="updatePassword()" class="w-full bg-red-600 text-white py-2 rounded text-xs font-bold uppercase">Change Key</button>
+                </div>
+            </div>
+            
+            <button onclick="saveAllChanges()" class="w-full mt-8 bg-green-700 text-yellow-300 font-black py-4 rounded-xl shadow-lg hover:bg-green-800 transition uppercase tracking-widest">Update Portal Content</button>
+        </section>
+
+        <section class="glass-panel rounded-[2.5rem] p-4 shadow-2xl">
+            <h2 class="text-2xl font-black mb-4 ml-4 border-b-2 border-yellow-400 inline-block uppercase italic">Transit Gallery</h2>
+            <img id="displayImage" src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1200" alt="Bus">
+        </section>
+
+        <section class="glass-panel rounded-[2.5rem] p-8 shadow-2xl">
+            <h2 class="text-3xl font-black mb-8 border-b-4 border-yellow-400 pb-2 inline-block uppercase">Active Routes</h2>
+            <div id="userRouteGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        </section>
+
+    </main>
+
+    <script>
+        const DEFAULT_PASS = "varsity2026";
+        const defaultRoutes = ["Main Campus", "Town Hall", "Medical Block", "Railway St.", "Hostel A", "South Gate", "Staff Area", "Science Lab", "Old Library", "Engineering", "Metro Link", "Prayer Loop"];
+        let tempImg = "";
+        let clickCount = 0;
+
+        function adminLogin() {
+            const savedPass = localStorage.getItem('varsityPassword') || DEFAULT_PASS;
+            const input = prompt("Enter Admin Password:");
+            if (input !== null) {
+                if (input.trim() === savedPass) {
+                    document.getElementById('adminPanel').style.display = 'block';
+                    loadAdminData();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    alert("Wrong Password!");
+                }
+            }
+        }
+
+        function secretReset() {
+            clickCount++;
+            if (clickCount >= 5) {
+                localStorage.setItem('varsityPassword', DEFAULT_PASS);
+                alert("RESET: Password is now 'varsity2026'");
+                clickCount = 0;
+            }
+        }
+
+        function updatePassword() {
+            const newP = document.getElementById('newPassInput').value.trim();
+            if(newP.length < 4) return alert("Too short!");
+            localStorage.setItem('varsityPassword', newP);
+            alert("Updated! New password: " + newP);
+            document.getElementById('newPassInput').value = "";
+        }
+
+        function logout() {
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => { tempImg = reader.result; };
+            if (file) reader.readAsDataURL(file);
+        });
+
+        function loadAdminData() {
+            const routes = JSON.parse(localStorage.getItem('varsityRoutes')) || defaultRoutes;
+            document.getElementById('routeEditorGrid').innerHTML = routes.map((name, i) => `
+                <input type="text" value="${name}" class="admin-route-input w-full p-2 border rounded text-xs font-bold mb-1">
+            `).join('');
+        }
+
+        function saveAllChanges() {
+            const inputs = document.querySelectorAll('.admin-route-input');
+            const newRoutes = Array.from(inputs).map(i => i.value);
+            localStorage.setItem('varsityRoutes', JSON.stringify(newRoutes));
+            if (tempImg) localStorage.setItem('varsitySingleImg', tempImg);
+            alert("Website Updated!");
+            location.reload();
+        }
+
+        function renderView() {
+            const routes = JSON.parse(localStorage.getItem('varsityRoutes')) || defaultRoutes;
+            document.getElementById('userRouteGrid').innerHTML = routes.map((name, i) => `
+                <div onclick="window.location.href='route${i+1}.html'" class="route-btn bg-white p-6 rounded-2xl shadow-lg border border-green-100">
+                    <p class="text-[10px] font-black text-green-700 uppercase">Route ${i+1}</p>
+                    <h3 class="font-black text-lg text-gray-800 truncate">${name}</h3>
+                </div>
+            `).join('');
+            const savedImg = localStorage.getItem('varsitySingleImg');
+            if (savedImg) document.getElementById('displayImage').src = savedImg;
+        }
+
+        window.onload = renderView;
+    </script>
+</body>
+</html>

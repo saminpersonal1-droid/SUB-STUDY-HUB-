@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SUB PHARMACY COVER MAKER</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #dfe4ea; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* Sidebar UI */
+        .sidebar { width: 380px; background: #fff; padding: 20px; box-shadow: 4px 0 10px rgba(0,0,0,0.05); height: 100vh; overflow-y: auto; box-sizing: border-box; border-right: 1px solid #e1e1e1; flex-shrink: 0; }
+        .preview-pane { flex-grow: 1; display: flex; justify-content: center; padding: 0; overflow-y: auto; background: #dfe4ea; }
+
+        .nav-bar { display: flex; gap: 8px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .nav-btn { flex: 1; padding: 8px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 0.75em; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-home { background: #0056b3; color: white; }
+        .btn-reset { background: #6c757d; color: white; }
+
+        @media (max-width: 900px) {
+            body { flex-direction: column; overflow-y: auto; height: auto; }
+            .sidebar { width: 100%; height: auto; border-right: none; }
+            .page { transform: scale(0.42); transform-origin: top center; margin-bottom: -175mm; }
+        }
+
+        .sidebar-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; border-bottom: 2px solid #ed1c24; padding-bottom: 10px; }
+        .small-logo { width: 35px; }
+        label { display: block; margin-top: 10px; font-weight: 600; font-size: 0.85em; color: #444; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; outline: none; background: #fafafa; font-family: inherit; }
+        textarea { height: 60px; resize: none; }
+        .print-btn { background: #ed1c24; color: white; border: none; padding: 16px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; }
+
+        /* A4 PAGE LAYOUT */
+        .page { 
+            width: 210mm; height: 297mm; background: white; padding: 20mm 15mm; 
+            display: flex; flex-direction: column; align-items: center; 
+            box-sizing: border-box; font-family: 'Arial', sans-serif; 
+            position: relative; overflow: hidden; color: #000;
+        }
+        
+        .logo { width: 130px; margin-bottom: 10px; }
+        .uni-text { font-size: 26pt; font-weight: 900; text-align: center; line-height: 1.1; letter-spacing: 1px; margin-bottom: 5px; }
+        .tagline { font-size: 11pt; font-style: italic; border-top: 2px solid #000; padding-top: 3px; margin-bottom: 15px; }
+        
+        .dept-title { font-size: 18pt; margin-bottom: 5px; }
+        .semester-text { font-size: 16pt; margin-bottom: 10px; }
+        .cover-title { font-size: 20pt; font-weight: bold; margin-bottom: 15px; }
+
+        .content-area { width: 100%; text-align: center; margin-bottom: 10px; }
+        .course-line { font-size: 16pt; margin-bottom: 5px; }
+
+        .topic-container { width: 100%; margin: 20px 0; display: flex; flex-direction: column; align-items: center; flex-grow: 1; }
+        .topic-label { font-size: 17pt; font-weight: bold; text-decoration: underline; margin-bottom: 8px; }
+        .topic-data { font-size: 18pt; text-align: center; line-height: 1.3; width: 95%; word-wrap: break-word; }
+
+        .sub-container { width: 100%; text-align: center; margin-top: auto; display: flex; flex-direction: column; gap: 40px; padding-bottom: 15mm; }
+        .sub-header { font-size: 17pt; font-weight: bold; margin-bottom: 5px; }
+        .sub-details { font-size: 14pt; line-height: 1.6; }
+        .bold-name { font-size: 16pt; font-weight: bold; display: block; margin-bottom: 4px; }
+
+        .footer-date { width: 100%; text-align: center; font-size: 16pt; font-weight: bold; margin-bottom: 10mm; }
+
+        @media print {
+            @page { margin: 0; size: A4; }
+            body { background: none; }
+            .sidebar { display: none !important; }
+            .page { box-shadow: none !important; margin: 0 !important; transform: scale(1) !important; }
+        }
+    </style>
+</head>
+<body onload="setTodayDate()">
+
+<div class="sidebar">
+    <div class="nav-bar">
+        <button class="nav-btn btn-home" onclick="window.location.href='home.html'">🏠 Home</button>
+        <button class="nav-btn btn-reset" onclick="resetForm()">🔄 Reset</button>
+    </div>
+
+    <div class="sidebar-header">
+        <img src="https://uploads.onecompiler.io/43m5mbnd8/449aujhz7/1622913558205.jpg" class="small-logo">
+        <h2 style="font-size: 0.85em; margin:0; color:#ed1c24;">COVER PAGE MAKER</h2>
+    </div>
+
+    <label>Department</label>
+    <select id="deptIn" onchange="initData(); sync();">
+        <option value="Department of Pharmacy">Pharmacy</option>
+        <option value="Department of Computer Science & Engineering">CSE</option>
+    </select>
+
+    <label>Report Type</label>
+    <select id="typeIn" onchange="toggleTopicUI(); initData(); sync();">
+        <option value="Assignment">Assignment</option>
+        <option value="Lab Report">Lab Report</option>
+        <option value="Project Report">Project Report</option>
+    </select>
+
+    <label>Semester</label>
+    <input type="text" id="semIn" value="Fall 2025" oninput="sync()">
+
+    <label>Course Title</label>
+    <select id="courseIn" onchange="sync()"><option value="">-- Select Course --</option></select>
+    
+    <label>Course Code</label>
+    <select id="codeIn" onchange="sync()"><option value="">-- Select Code --</option></select>
+    
+    <div id="sidebarTopicBox">
+        <label>Topic Name</label>
+        <textarea id="topicIn" placeholder="Enter topic title..." oninput="sync()"></textarea>
+    </div>
+    
+    <label>Student Name</label>
+    <input type="text" id="nameIn" placeholder="Full Name" oninput="sync()">
+    
+    <label>ID</label><input type="text" id="idIn" oninput="sync()">
+    <label>Group</label><input type="text" id="groupIn" placeholder="45 (A)" oninput="sync()">
+    
+    <label>Instructor</label>
+    <select id="instIn" onchange="sync()"><option value="">-- Select Teacher --</option></select>
+    
+    <label>Submission Date</label>
+    <input type="date" id="dateIn" oninput="sync()">
+    
+    <button class="print-btn" onclick="window.print()">PRINT COVER PAGE</button>
+</div>
+
+<div class="preview-pane">
+    <div class="page" id="printablePage">
+        <img src="https://uploads.onecompiler.io/43m5mbnd8/449aujhz7/1622913558205.jpg" class="logo">
+        <div class="uni-text">STATE UNIVERSITY<br>OF BANGLADESH</div>
+        <div class="tagline">join the trendsetter</div>
+        
+        <div class="dept-title" id="deptOut">Department of Pharmacy</div>
+        <div class="semester-text" id="semOut">Fall 2025</div>
+        <div class="cover-title" id="typeOut">Assignment</div>
+        
+        <div class="content-area">
+            <div class="course-line">
+                <span id="codeOut" style="font-weight: bold; margin-right: 10px;"></span>
+                <span id="courseOut"></span>
+            </div>
+        </div>
+
+        <div class="topic-container" id="pageTopicContainer">
+            <div id="topicLabelOut" class="topic-label">Assignment On:</div>
+            <div id="topicOut" class="topic-data"></div>
+        </div>
+
+        <div class="sub-container" id="subContainerUI">
+            <div class="sub-block">
+                <span class="sub-header">Submitted to:</span>
+                <div class="sub-details">
+                    <span class="bold-name" id="instOut">---</span>
+                    <span id="desigOut">---</span><br>
+                    <span class="dept-mirror">Department of Pharmacy</span><br>
+                    State University of Bangladesh
+                </div>
+            </div>
+
+            <div class="sub-block">
+                <span class="sub-header">Submitted by:</span>
+                <div class="sub-details">
+                    <span class="bold-name" id="nameOut">---</span>
+                    ID: <span id="idOut">---</span><br>
+                    Group: <span id="groupOut">---</span><br>
+                    <span class="dept-mirror">Department of Pharmacy</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-date">Submission Date : <span id="dateOut" style="font-weight: normal;"></span></div>
+    </div>
+</div>
+
+<script>
+    // Logic for Course Lists, Codes, and Teachers provided in previous turns is included here...
+    const theoryCourses = [
+        "Introduction to Pharmacy", "Pharmaceutical Inorganic Chemistry-I", "Pharmacognosy & Natural Product Chemistry-I",
+        "Computer Applications in Pharmacy", "Developing English Skills, Reading & Writing Strategies", "Introduction to Social Science & Bangladesh Studies",
+        "Basic Mathematics", "Pharmaceutical Organic Chemistry-I", "Pharmaceutical Inorganic Chemistry-II", "Pharmacognosy & Natural Product Chemistry-II",
+        "Human Physiology-I", "Basic Anatomy & Histology", "Pharmaceutical Organic Chemistry-II", "Pharmaceutical Physical Chemistry-I",
+        "Pharmaceutical Microbiology-I", "Human Physiology-II", "Basic Pathology", "Biochemistry & Molecular Biology",
+        "Medicinal Chemistry & Drug Discovery-I", "Pharmaceutical Physical Chemistry-II", "Pharmaceutical Microbiology-II", "Pharmacology & Therapeutics-I",
+        "Basic Pharmaceutics", "Pharmaceutical Engineering-I", "Medicinal Chemistry & Drug Discovery-II", "Pharmaceutical Analysis-I",
+        "Functional Foods, Nutraceuticals & Herbal Medicines", "Pharmacology & Therapeutics-II", "Pharmaceutical Technology-I", "Pharmaceutical Engineering-II",
+        "Veterinary Pharmacy", "Advanced Medicinal Chemistry", "Pharmaceutical Analysis-II", "Pharmaceutical Biotechnology",
+        "Pharmacology & Therapeutics-III", "Pharmaceutical Technology-II", "Biopharmaceutics & Pharmacokinetics-I", "Pharmaceutical Management",
+        "Advanced Pharmaceutical Analysis", "Clinical Pharmacy & Toxicology", "Hospital & Community Pharmacy", "Pharmaceutical Technology-III",
+        "Biopharmaceutics & Pharmacokinetics-II", "Biostatistics", "Pharmaceutical Marketing", "Quality Control & Analytical Method Validation",
+        "Pharmaceutical Regulatory Affairs", "Cosmetology", "Pharmacoeconomics"
+    ];
+
+    const labCourses = [
+        "Pharmacognosy & Natural Product Chemistry-I Lab", "Pharmaceutical Organic Chemistry Lab", "Pharmaceutical Inorganic Chemistry Lab",
+        "Pharmacognosy & Natural Product Chemistry-II Lab", "Human Physiology-I Lab", "Pharmaceutical Physical Chemistry-I Lab",
+        "Pharmaceutical Microbiology Lab", "Human Physiology-II Lab", "Medicinal Chemistry & Drug Discovery-I Lab",
+        "Pharmaceutical Physical Chemistry-II Lab", "Pharmacology & Therapeutics-I Lab", "Medicinal Chemistry & Drug Discovery-II Lab",
+        "Pharmacology & Therapeutics-II Lab", "Pharmaceutical Technology-I Lab", "Pharmaceutical Analysis Lab",
+        "Pharmaceutical Biotechnology Lab", "Pharmaceutical Technology-II Lab", "Advanced Pharmaceutical Analysis Lab",
+        "Pharmaceutical Technology-III Lab", "Biopharmaceutics & Pharmacokinetics Lab", "Quality Control & Analytical Method Validation Lab",
+        "Cosmetology Lab"
+    ];
+
+    const assignmentCodes = ["111", "112", "113", "114", "115", "116", "117", "121", "122", "123", "124", "125", "211", "212", "213", "214", "215", "216", "221", "222", "223", "224", "225", "226", "311", "312", "313", "314", "315", "316", "317", "321", "322", "323", "324", "325", "326", "411", "412", "413", "414", "415", "416", "420", "421", "422", "423", "424", "425"];
+    
+    const labCodes = ["113L", "121L", "122L", "123L", "124L", "212L", "213L", "214L", "221L", "222L", "224L", "311L", "314L", "315L", "322L", "323L", "325L", "412L", "415L", "416L", "422L", "424L"];
+
+    const pharmacyTeachers = [
+        { name: "Prof. Dr. M A Rashid", desig: "Advisor" },
+        { name: "Prof. Md. Saiful Islam Pathan", desig: "Professor & Dean" },
+        { name: "Prof. Dr. Kohinur Begum", desig: "Professor" },
+        { name: "Prof. Dr. Md. Hassan Kawsar", desig: "Professor & Treasurer" },
+        { name: "Prof. Dr. Mohammed Ibrahim, RPh", desig: "Chairman" },
+        { name: "Prof. Dr. Md. Monirul Islam", desig: "Professor" },
+        { name: "Dr. Mst Lubna Jahan", desig: "Associate Professor" },
+        { name: "Dr. Md. Zahurul Hossain", desig: "Associate Professor" },
+        { name: "Tanoy Saha", desig: "Assistant Professor & Coordinator (M. Pharm.)" },
+        { name: "Md. Mirazul Islam", desig: "Assistant Professor & Coordinator (B. Pharm.)" },
+        { name: "Farjahan Nur", desig: "Assistant Professor" },
+        { name: "Md. Mahbubul Hoque", desig: "Lecturer & Coordinator (B. Pharm.)" },
+        { name: "Md. Solaiman Hossain", desig: "Lecturer and Student Counselor" },
+        { name: "Nushrat Jahan Ema", desig: "Lecturer" },
+        { name: "Mithila Haque", desig: "Lecturer" },
+        { name: "Abdul Kuddus", desig: "Lecturer" },
+        { name: "Farhad Hossain", desig: "Lecturer" },
+        { name: "Md. Ariful Islam", desig: "Lecturer" },
+        { name: "K M Ferdousul Haque", desig: "Lecturer" },
+        { name: "Ehasanul Haque", desig: "Lecturer" },
+        { name: "Md. Shafiul Hossen", desig: "Lecturer" },
+        { name: "Hriday Kumar Shaha", desig: "Lecturer" },
+        { name: "Sanjoy Kumar Chaki", desig: "Lecturer" },
+        { name: "Rakibul Hasan Shanto", desig: "Lecturer" },
+        { name: "Shahjada Arafat", desig: "Lecturer" },
+        { name: "Syed Mumtahin Mannan Siam", desig: "Lecturer" },
+        { name: "Professor Satyajit D Sarker", desig: "Visiting Professor" },
+        { name: "Prof. Dr. Mukhlesur Rahman", desig: "Visiting Professor" },
+        { name: "Dr. Nazmul Qais", desig: "Adjunct Faculty" },
+        { name: "Dr. Md. Khorshed Alam", desig: "Adjunct Faculty" },
+        { name: "Prof. Md. Lutfor Rahaman", desig: "Adjunct Faculty" },
+        { name: "Dr. Mohammad Mehedi Masud", desig: "Adjunct Faculty" },
+        { name: "Dr. Md. Khalid Hosain", desig: "Adjunct Faculty" },
+        { name: "Dr. Md. Aslam Hossain", desig: "Adjunct Faculty" },
+        { name: "Dr. Mohammad Safiqul Islam", desig: "Adjunct Faculty" },
+        { name: "Dr. Abu Asad Chowdhury", desig: "Adjunct Faculty" },
+        { name: "Dr. Md. Elias Al Mamun", desig: "Adjunct Faculty" },
+        { name: "Dr. Muhammad Rashedul Islam", desig: "Adjunct Faculty" },
+        { name: "Dr. Mohammad Rashedul Haque", desig: "Adjunct Faculty" },
+        { name: "Dr. Mohammad Sharifur Rahman", desig: "Adjunct Faculty" },
+        { name: "Dr. Jakir Ahmed Chowdhury", desig: "Adjunct Faculty" },
+        { name: "Dr. Md. Rabiul lslam", desig: "Adjunct Faculty" },
+        { name: "Dr. Mohammad Hafiz Uddin Bhuiyan", desig: "Adjunct Faculty" },
+        { name: "Dr. Md. Ruhul Kuddus", desig: "Adjunct Faculty" },
+        { name: "Dr. Md. Al Amin Sikder", desig: "Adjunct Faculty" },
+        { name: "Mr. Md. Belayet Hossain", desig: "Adjunct Faculty" },
+        { name: "Dr. Md. Anower Hussain", desig: "Adjunct Faculty" },
+        { name: "Dr. Md. Zakir Sultan", desig: "Adjunct Faculty" },
+        { name: "Mr. Khondaker Md. Al Mamoon", desig: "Adjunct Faculty" },
+        { name: "Mr. Md. Salim Jahangir", desig: "Adjunct Faculty" },
+        { name: "Mr. Akhil Chandra Bhowmik", desig: "Adjunct Faculty" },
+        { name: "Mr. A.K.M. Zakaria", desig: "Adjunct Faculty" },
+        { name: "Dr. Md. Mokaram Hossain", desig: "Adjunct Faculty" },
+        { name: "Md. Masudar Rahman", desig: "Adjunct Faculty" },
+        { name: "Mr. Faez Ahmed", desig: "Adjunct Faculty" },
+        { name: "Mr. Rashedul Imam", desig: "Adjunct Faculty" },
+        { name: "Mr. Mohammad Ziauddin", desig: "Adjunct Faculty" },
+        { name: "Mr. Md. Hafizur Rahman", desig: "Adjunct Faculty" },
+        { name: "Mr. Mohammad Shafiqul Haque", desig: "Adjunct Faculty" },
+        { name: "Ms. Sumaiya Islam", desig: "Adjunct Faculty" }
+    ];
+
+    function setTodayDate() {
+        document.getElementById('dateIn').value = new Date().toISOString().split('T')[0];
+        initData();
+    }
+
+    function toggleTopicUI() {
+        const type = document.getElementById('typeIn').value;
+        const sBox = document.getElementById('sidebarTopicBox');
+        const pBox = document.getElementById('pageTopicContainer');
+        const sub = document.getElementById('subContainerUI');
+        if (type === "Lab Report") {
+            sBox.style.display = "none"; pBox.style.display = "none"; sub.style.marginTop = "auto"; sub.style.gap = "60px";
+        } else {
+            sBox.style.display = "block"; pBox.style.display = "flex"; sub.style.marginTop = "0"; sub.style.gap = "40px";
+        }
+    }
+
+    function initData() {
+        const dept = document.getElementById('deptIn').value;
+        const type = document.getElementById('typeIn').value;
+        const cSel = document.getElementById('courseIn');
+        const codeSel = document.getElementById('codeIn');
+        const instSel = document.getElementById('instIn');
+
+        cSel.innerHTML = '<option value="">-- Select Course --</option>';
+        if(dept === "Department of Pharmacy") {
+            const list = (type === "Lab Report") ? labCourses : theoryCourses;
+            list.forEach(c => cSel.add(new Option(c, c)));
+        }
+
+        codeSel.innerHTML = '<option value="">-- Select Code --</option>';
+        if(dept === "Department of Pharmacy") {
+            const codes = (type === "Lab Report") ? labCodes : assignmentCodes;
+            codes.forEach(num => {
+                let fullCode = `PHR0916 ${num}`;
+                codeSel.add(new Option(fullCode, fullCode));
+            });
+        }
+
+        instSel.innerHTML = '<option value="">-- Select Teacher --</option>';
+        pharmacyTeachers.forEach(t => {
+            let opt = new Option(t.name, t.name);
+            opt.dataset.desig = t.desig;
+            instSel.add(opt);
+        });
+    }
+
+    function resetForm() {
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(i => { if(i.id !== 'semIn') i.value = ''; });
+        document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+        toggleTopicUI(); initData(); setTodayDate();
+    }
+
+    function sync() {
+        const type = document.getElementById('typeIn').value;
+        const dept = document.getElementById('deptIn').value;
+        document.getElementById('typeOut').innerText = type;
+        document.getElementById('deptOut').innerText = dept;
+        document.querySelectorAll('.dept-mirror').forEach(m => m.innerText = dept);
+        document.getElementById('semOut').innerText = document.getElementById('semIn').value;
+        document.getElementById('topicLabelOut').innerText = type + " On:";
+        document.getElementById('topicOut').innerText = document.getElementById('topicIn').value;
+        document.getElementById('courseOut').innerText = document.getElementById('courseIn').value || "---";
+        document.getElementById('codeOut').innerText = document.getElementById('codeIn').value || "---";
+        document.getElementById('nameOut').innerText = document.getElementById('nameIn').value || "---";
+        document.getElementById('idOut').innerText = document.getElementById('idIn').value || "---";
+        document.getElementById('groupOut').innerText = document.getElementById('groupIn').value || "---";
+        const inst = document.getElementById('instIn');
+        document.getElementById('instOut').innerText = inst.value || "---";
+        document.getElementById('desigOut').innerText = inst.options[inst.selectedIndex]?.dataset.desig || "";
+        const d = new Date(document.getElementById('dateIn').value);
+        if(!isNaN(d)) {
+            document.getElementById('dateOut').innerText = String(d.getDate()).padStart(2, '0') + "." + String(d.getMonth() + 1).padStart(2, '0') + "." + d.getFullYear();
+        }
+    }
+</script>
+</body>
+</html>

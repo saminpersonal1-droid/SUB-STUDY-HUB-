@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Routine | Batch Pro Edition</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --border: #000;
+            --header-bg: #fff1e1;
+            --alt-bg: #ffe9d1;
+            --room-color: #d94600;
+            --primary: #2563eb;
+            --danger: #ef4444;
+            --image-btn: #8b5cf6;
+            --home-btn: #475569;
+        }
+
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background: #f0f2f5; }
+        .page-wrapper { max-width: 1600px; margin: 0 auto; }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-home { display: inline-flex; align-items: center; gap: 8px; background: var(--home-btn); color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; }
+
+        .controls-container { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .admin-section { border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px; }
+        .input-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; }
+        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; flex: 1; min-width: 120px; }
+
+        .btn-save { background: var(--primary); color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 6px; font-weight: bold; }
+        .btn-reset { background: var(--danger); color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 6px; font-weight: bold; }
+        .btn-print { background: #059669; color: white; border: none; padding: 15px 30px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 16px; }
+        .btn-image { background: var(--image-btn); color: white; border: none; padding: 15px 30px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 16px; margin-left: 10px; }
+
+        .day-label-pill { padding: 6px 12px; background: #e2e8f0; border-radius: 15px; cursor: pointer; font-size: 14px; font-weight: 600; user-select: none; }
+        .day-checkbox { display: none; }
+        .day-checkbox:checked + .day-label-pill { background: var(--primary); color: white; }
+
+        /* THE CAPTURE AREA */
+        #routine-capture-area { background: white; padding: 40px; border-radius: 4px; }
+        
+        /* New Header Grid for 3-Column Layout */
+        .routine-header { 
+            display: grid; 
+            grid-template-columns: 1fr auto 1fr; 
+            align-items: flex-end; 
+            margin-bottom: 15px; 
+        }
+        .header-left { font-size: 14px; font-weight: bold; line-height: 1.4; text-align: left; }
+        .header-center { font-size: 32px; font-weight: 900; text-align: center; border-bottom: 3px solid #000; padding: 0 20px; }
+        .header-right { font-size: 28px; font-weight: 800; text-align: right; text-transform: uppercase; }
+
+        .timetable { display: grid; grid-template-columns: 120px repeat(6, 1fr); border: 2.5px solid var(--border); }
+        .cell { border: 1px solid var(--border); padding: 15px; min-height: 140px; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+        .header-cell { background: var(--header-bg); font-weight: bold; font-size: 14px; min-height: 60px; }
+        .day-tag { font-size: 18px; font-weight: bold; }
+        .row-alt { background: var(--alt-bg) !important; }
+
+        .course-code { font-weight: 800; font-size: 18px; }
+        .course-name { font-size: 15px; color: #334155; margin: 5px 0; }
+        .room-no { color: var(--room-color); font-weight: bold; font-size: 17px; margin-top: 8px; }
+
+        #status { font-weight: bold; color: var(--primary); margin-top: 10px; display: none; }
+
+        @media print {
+            .no-print, .controls-container, .top-bar { display: none !important; }
+            body { padding: 0; background: white; }
+            #routine-capture-area { padding: 0; }
+            @page { size: landscape; margin: 1cm; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-wrapper">
+    <div class="top-bar no-print">
+        <a href="home.html" class="btn-home">🏠 Home Page</a>
+        <button class="btn-reset" onclick="resetAll()">⚠️ Reset All Data</button>
+    </div>
+
+    <div class="controls-container no-print">
+        <div class="admin-section">
+            <strong>1. Global Settings (Header):</strong>
+            <div class="input-row">
+                <input type="text" id="set-effective" placeholder="Effective Date">
+                <input type="text" id="set-batch" placeholder="Batch (e.g. Batch)">
+                <input type="text" id="set-section" placeholder="Section">
+                <input type="text" id="set-revision" placeholder="Revision">
+                <button onclick="updateHeader()" class="btn-save" style="background:var(--home-btn)">Update Routine Header</button>
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <strong>2. Entry:</strong>
+            <div class="input-row">
+                <select id="day-in">
+                    <option value="SAT">Saturday</option><option value="SUN">Sunday</option>
+                    <option value="MON">Monday</option><option value="TUE">Tuesday</option>
+                    <option value="WED">Wednesday</option><option value="THU">Thursday</option>
+                    <option value="FRI">Friday</option>
+                </select>
+                <select id="slot-in">
+                    <option value="1">09:00-10:10</option><option value="2">10:15-11:25</option>
+                    <option value="3">11:30-12:40</option><option value="4">12:40-01:55</option>
+                    <option value="5">02:00-03:10</option><option value="6">03:15-04:25</option>
+                </select>
+                <input type="text" id="code" placeholder="Course Code">
+                <input type="text" id="name" placeholder="Course Name">
+                <input type="text" id="room" placeholder="Room">
+                <button class="btn-save" onclick="saveData()">Add Class</button>
+            </div>
+        </div>
+
+        <div class="day-selector-panel" style="display:flex; align-items:center; gap:10px;">
+            <strong>3. Toggle Days:</strong>
+            <div id="checkbox-group" style="display:flex; gap:8px;"></div>
+        </div>
+    </div>
+
+    <div id="routine-capture-area">
+        <div class="routine-header">
+            <div class="header-left">
+                Effective from: <span id="display-effective">10.01.2026</span><br>
+                Revision: <span id="display-revision">00</span>
+            </div>
+            <div class="header-center" id="display-batch">64th BATCH</div>
+            <div class="header-right" id="display-section">SECTION A</div>
+        </div>
+
+        <div class="timetable" id="tableGrid">
+            <div class="cell header-cell">DAY</div>
+            <div class="cell header-cell">09:00 - 10:10</div>
+            <div class="cell header-cell">10:15 - 11:25</div>
+            <div class="cell header-cell">11:30 - 12:40</div>
+            <div class="cell header-cell">12:40 - 01:55</div>
+            <div class="cell header-cell">02:00 - 03:10</div>
+            <div class="cell header-cell">03:15 - 04:25</div>
+        </div>
+    </div>
+
+    <div class="no-print" style="margin-top: 30px; text-align: center;">
+        <button class="btn-print" onclick="window.print()">🖨️ Print as PDF</button>
+        <button class="btn-image" id="imgBtn" onclick="saveAsImage()">📸 Save as Picture</button>
+        <div id="status">Generating Picture... Please Wait.</div>
+    </div>
+</div>
+
+<script>
+    const daysArr = ["SAT", "SUN", "MON", "TUE", "WED", "THU", "FRI"];
+    let schedule = JSON.parse(localStorage.getItem('uni_v9_data')) || {};
+    let headerData = JSON.parse(localStorage.getItem('uni_v9_head')) || { eff: '10.01.2026', rev: '00', sec: 'SECTION A', batch: ' BATCH' };
+    
+    function loadHeader() {
+        document.getElementById('display-effective').innerText = headerData.eff;
+        document.getElementById('display-revision').innerText = headerData.rev;
+        document.getElementById('display-section').innerText = headerData.sec;
+        document.getElementById('display-batch').innerText = headerData.batch;
+    }
+
+    function updateHeader() {
+        headerData.eff = document.getElementById('set-effective').value || headerData.eff;
+        headerData.rev = document.getElementById('set-revision').value || headerData.rev;
+        headerData.sec = document.getElementById('set-section').value || headerData.sec;
+        headerData.batch = document.getElementById('set-batch').value || headerData.batch;
+        localStorage.setItem('uni_v9_head', JSON.stringify(headerData));
+        loadHeader();
+    }
+
+    const checkboxGroup = document.getElementById('checkbox-group');
+    daysArr.forEach(day => {
+        const wrap = document.createElement('div');
+        wrap.innerHTML = `<input type="checkbox" id="check-${day}" class="day-checkbox" value="${day}" checked onchange="renderTable()"><label for="check-${day}" class="day-label-pill">${day}</label>`;
+        checkboxGroup.appendChild(wrap);
+    });
+
+    function renderTable() {
+        const grid = document.getElementById('tableGrid');
+        while (grid.children.length > 7) { grid.removeChild(grid.lastChild); }
+        const selectedDays = Array.from(document.querySelectorAll('.day-checkbox:checked')).map(cb => cb.value);
+
+        selectedDays.forEach(day => {
+            const isAlt = (day === 'TUE' || day === 'SUN' || day === 'THU');
+            const dayCell = document.createElement('div');
+            dayCell.className = `cell day-tag ${isAlt ? 'row-alt' : ''}`;
+            dayCell.innerText = day;
+            grid.appendChild(dayCell);
+
+            for (let i = 1; i <= 6; i++) {
+                const data = schedule[`${day}-${i}`] || {};
+                const cell = document.createElement('div');
+                cell.className = `cell ${isAlt ? 'row-alt' : ''}`;
+                if (data.code) {
+                    cell.innerHTML = `<span class="course-code">${data.code}</span><span class="course-name">${data.name}</span><span class="room-no">${data.room}</span>`;
+                }
+                grid.appendChild(cell);
+            }
+        });
+    }
+
+    function saveData() {
+        const day = document.getElementById('day-in').value;
+        const slot = document.getElementById('slot-in').value;
+        schedule[`${day}-${slot}`] = {
+            code: document.getElementById('code').value,
+            name: document.getElementById('name').value,
+            room: document.getElementById('room').value
+        };
+        localStorage.setItem('uni_v9_data', JSON.stringify(schedule));
+        renderTable();
+    }
+
+    function resetAll() {
+        if (confirm("Delete all data?")) { localStorage.clear(); location.reload(); }
+    }
+
+    function saveAsImage() {
+        const element = document.getElementById('routine-capture-area');
+        const statusMsg = document.getElementById('status');
+        const btn = document.getElementById('imgBtn');
+        statusMsg.style.display = "block";
+        btn.disabled = true;
+        html2canvas(element, { backgroundColor: "#ffffff", scale: 3 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Routine_${headerData.batch}_${headerData.sec}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            statusMsg.style.display = "none";
+            btn.disabled = false;
+        });
+    }
+
+    loadHeader();
+    renderTable();
+</script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUB STUDY HUB | Student Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #0f172a;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --nav-bg: rgba(15, 23, 42, 0.9);
+        }
+
+        [data-theme="dark"] {
+            --bg: #020617;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --nav-bg: rgba(2, 6, 23, 0.9);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; transition: all 0.3s ease; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-main); line-height: 1.6; }
+
+        /* --- NAVIGATION --- */
+        nav {
+            position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between; align-items: center;
+            padding: 1.2rem 8%; z-index: 1000; background: var(--nav-bg); backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .logo { font-size: 1.6rem; font-weight: 800; color: #fff; text-decoration: none; letter-spacing: -1px; }
+        .nav-controls { display: flex; align-items: center; gap: 20px; }
+        
+        #theme-toggle {
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;
+            padding: 6px 15px; border-radius: 50px; cursor: pointer; font-weight: 600;
+        }
+
+        .user-pill {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            color: white; padding: 12px 30px; border-radius: 50px;
+            font-weight: 800; cursor: pointer; border: none; text-decoration: none; 
+            font-size: 1rem; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            animation: pulse-glow 3s infinite; text-transform: uppercase;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.6); }
+            70% { box-shadow: 0 0 0 12px rgba(99, 102, 241, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
+
+        /* --- AUTH MODAL --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .modal-card {
+            background: var(--card-bg); padding: 50px; border-radius: 35px;
+            width: 90%; max-width: 450px; text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+        .modal-card h2 { font-size: 2.2rem; margin-bottom: 10px; font-weight: 800; }
+        .modal-card input {
+            width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px;
+            border: 2px solid #e2e8f0; background: transparent; color: var(--text-main);
+            font-size: 1rem; outline: none;
+        }
+        .modal-card input:focus { border-color: var(--primary); }
+
+        /* --- HERO & GRID --- */
+        .hero {
+            height: 60vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; color: white; padding: 0 5%;
+            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.8)), 
+                        url('https://uploads.onecompiler.io/43m5mbnd8/44bbmhvx2/6309883360074993531.jpg');
+            background-size: cover; background-position: center;
+        }
+        .hero h1 { font-size: 4.8rem; font-weight: 800; margin-bottom: 1rem; letter-spacing: -2px; }
+
+        .portal-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px; padding: 0 8%; max-width: 1400px; margin: -80px auto 100px;
+        }
+        .action-card {
+            background: var(--card-bg); padding: 50px 30px; border-radius: 35px; text-decoration: none;
+            color: var(--text-main); text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border: 2px solid transparent; display: flex; flex-direction: column; align-items: center;
+        }
+        .action-card:hover { transform: translateY(-15px) scale(1.02); border-color: var(--primary); }
+        .icon-box { font-size: 4rem; margin-bottom: 20px; }
+        .action-card h3 { font-size: 2.2rem; margin-bottom: 10px; font-weight: 800; }
+        .action-card p { font-size: 1.1rem; color: var(--text-sub); }
+
+        footer { background: var(--secondary); color: white; padding: 40px; text-align: center; }
+    </style>
+</head>
+<body data-theme="light">
+
+    <nav>
+        <a href="#" class="logo">SUB STUDY HUB</a>
+        <div class="nav-controls">
+            <button id="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+            <div id="auth-zone">
+                <button class="user-pill" onclick="toggleModal(true)">Join The Hub</button>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <h1 id="hero-title">Academic Portal</h1>
+        <p style="font-size: 1.4rem; opacity: 0.9;">Your student life, centralized and simplified.</p>
+    </header>
+
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-card">
+            <h2>Sign Up</h2>
+            <p style="color: var(--text-sub); margin-bottom: 25px;">Store your data securely in the Hub.</p>
+            <input type="text" id="userName" placeholder="Full Name">
+            <input type="email" id="userEmail" placeholder="Campus Email">
+            <button class="user-pill" style="width:100%; margin-top:10px; animation:none;" onclick="handleAuth()">Create Account</button>
+            <p style="margin-top:20px; cursor:pointer; font-weight:700; color:var(--text-sub);" onclick="toggleModal(false)">Close</p>
+        </div>
+    </div>
+
+    <div class="portal-grid">
+        <a href="as.html" class="action-card"><span class="icon-box">📝</span><h3>Cover Maker</h3><p>Assignment covers instantly.</p></a>
+        <a href="rb.html" class="action-card"><span class="icon-box">📅</span><h3>Routine Maker</h3><p>Rise shine conquer.</p></a>
+        <a href="bu.html" class="action-card"><span class="icon-box">🚌</span><h3>Bus Info</h3><p>Campus transport schedules.</p></a>
+        <a href="#" class="action-card"><span class="icon-box">📖</span><h3>Library</h3><p>Massive digital archive.</p></a>
+        <a href="#" class="action-card" style="border-bottom: 5px solid var(--primary);"><span class="icon-box">⏳</span><h3>History</h3><p>Review your recent activity.</p></a>
+        <a href="#" class="action-card"><span class="icon-box">❤️</span><h3>Donation</h3><p>Help us keep it free.</p></a>
+    </div>
+
+    <footer><p>&copy; 2026 SUB STUDY HUB</p></footer>
+    <footer><p>&copy; videos & pictures collect from SUB OFFICIALS </p></footer>
+    <script>
+        // --- STORAGE & AUTH LOGIC ---
+        function handleAuth() {
+            const name = document.getElementById('userName').value;
+            const email = document.getElementById('userEmail').value;
+            if(name && email) {
+                localStorage.setItem('hubUser', name);
+                localStorage.setItem('hubEmail', email);
+                updateUI(name);
+                toggleModal(false);
+            } else { alert("Please fill in both fields!"); }
+        }
+
+        function updateUI(name) {
+            document.getElementById('auth-zone').innerHTML = `
+                <span style="color:white; font-weight:700; margin-right:15px;">👋 Hi, ${name.split(' ')[0]}</span>
+                <button class="user-pill" style="background:#ef4444; animation:none; padding:8px 20px;" onclick="logout()">Logout</button>
+            `;
+            document.getElementById('hero-title').innerText = `Welcome, ${name.split(' ')[0]}!`;
+        }
+
+        function logout() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        function toggleModal(show) {
+            document.getElementById('authModal').style.display = show ? 'flex' : 'none';
+        }
+
+        // --- THEME & INIT ---
+        function toggleTheme() {
+            const body = document.body;
+            const isLight = body.getAttribute('data-theme') === 'light';
+            body.setAttribute('data-theme', isLight ? 'dark' : 'light');
+            document.getElementById('theme-toggle').innerText = isLight ? "☀️ Light Mode" : "🌙 Dark Mode";
+            localStorage.setItem('hubTheme', isLight ? 'dark' : 'light');
+        }
+
+        window.onload = () => {
+            const savedTheme = localStorage.getItem('hubTheme') || 'light';
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('theme-toggle').innerText = savedTheme === 'dark' ? "☀️ Light Mode" : "🌙 Dark Mode";
+
+            const user = localStorage.getItem('hubUser');
+            if(user) updateUI(user);
+        };
+    </script>
+</body>
+</html>
